@@ -1,4 +1,4 @@
-import { forkJoin, from, lastValueFrom, mergeMap } from "rxjs";
+import { of, from, lastValueFrom, mergeMap, forkJoin } from "rxjs";
 import { Assignment, getAssignment, getDriver, getTrailer, getTruck } from "./fleet-service";
 import { getAllOrders } from "./order-service";
 import { getTransportByOrderId, Transport } from "./transport-service";
@@ -19,13 +19,23 @@ async function reactiveX() {
     // get orders
     const orders = await getAllOrders();
 
+    // const stream = from(orders).pipe(
+    //     mergeMap((o) => { return getAssignment(o.orderId) }, 1),
+    //     mergeMap(assignment => { getTruck(assignment.truck_id); return of(assignment) }, 1),
+    //     mergeMap(assignment => { getTrailer(assignment.trailer_id); return of(assignment) }, 1),
+    //     mergeMap(assignment => { getDriver(assignment.driver_id); return of(assignment) }, 1),
+    // ).pipe(
+    //     mergeMap((o) => { getTransportByOrderId(o.orderId); return of(o) }, 1),
+    // );
     const stream = forkJoin([
         from(orders).pipe(
-            mergeMap((o) => getTransportByOrderId(o.orderId)),
+            mergeMap((o) => getTransportByOrderId(o.orderId), 10),
         ),
         from(orders).pipe(
             mergeMap((o) => getAssignment(o.orderId)),
-            mergeMap(assignment => getTruck(assignment.truck_id)),
+            mergeMap(assignment => { getTruck(assignment.truck_id); return of(assignment) }, 10),
+            mergeMap(assignment => { getTrailer(assignment.trailer_id); return of(assignment) }, 10),
+            mergeMap(assignment => { getDriver(assignment.driver_id); return of(assignment) }, 10),
         ),
     ])
 

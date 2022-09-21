@@ -10,8 +10,8 @@ export async function getAssignment(orderId: string) {
         console.log(`getting assignment by order ${orderId}`)
 
         return new Promise<Assignment>((resolve) => {
-            setTimeout(() => {
-                resolve({ type: "assignment", orderId, assignmentId: `assignment-id-xxx`, truck_id: "truck-id-1", trailer_id: "trailer-id-1", driver_id: "driver-id-1" })
+            setTimeout(() => {4
+                resolve({ type: "assignment", orderId, assignmentId: `assignment-id-xxx`, truck_id: `truck-id-${orderId}`, trailer_id: `trailer-id-${orderId}`, driver_id: `driver-id-${orderId}` })
             }, NETWORK_LATENCY);
         });
     }
